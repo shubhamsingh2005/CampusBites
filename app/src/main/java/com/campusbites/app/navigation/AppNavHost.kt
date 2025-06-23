@@ -4,10 +4,7 @@ import androidx.compose.runtime.Composable
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
-import com.campusbites.app.screens.LoginScreen
-import com.campusbites.app.screens.SignupScreen
-import com.campusbites.app.screens.HomeScreen
-import com.campusbites.app.screens.PhoneAuthScreen  // ✅ Import for Phone Login screen
+import com.campusbites.app.screens.*
 
 @Composable
 fun AppNavHost(navController: NavHostController) {
@@ -22,10 +19,23 @@ fun AppNavHost(navController: NavHostController) {
             SignupScreen(navController)
         }
         composable("home") {
-            HomeScreen()
+            HomeScreen(navController)
         }
         composable("phone") {
-            PhoneAuthScreen(navController) // ✅ Phone OTP login screen
+            PhoneAuthScreen(navController)
         }
+        composable("language_settings") {
+            LanguageSettingsScreen(navController)
+        }
+        composable("forgot") {
+            ForgotPasswordScreen(navController)
+        }
+        composable("profile") {
+            ProfileScreen(navController) // ✅ NEW route added
+        }
+        composable("settings") {
+            SettingsScreen(navController)
+        }
+
     }
 }

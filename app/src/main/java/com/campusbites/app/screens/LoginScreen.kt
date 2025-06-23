@@ -1,77 +1,320 @@
 package com.campusbites.app.screens
 
+import android.app.Activity
+import android.content.Context
+import android.content.Intent
+import android.net.Uri
 import android.widget.Toast
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.fontResource
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.font.Font
+import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.input.VisualTransformation
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
+import com.campusbites.app.R
+import com.campusbites.app.utils.ThemeUtils
+import com.google.android.gms.auth.api.signin.GoogleSignIn
+import com.google.android.gms.auth.api.signin.GoogleSignInAccount
+import com.google.android.gms.auth.api.signin.GoogleSignInOptions
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.GoogleAuthProvider
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 @Composable
 fun LoginScreen(navController: NavHostController) {
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
+    var isLoading by remember { mutableStateOf(false) }
+    var rememberMe by remember { mutableStateOf(false) }
+    var passwordVisible by remember { mutableStateOf(false) }
+
+    val snackbarHostState = remember { SnackbarHostState() }
     val context = LocalContext.current
+    val kidsZoneFont = FontFamily(Font(R.font.kidszone))
+    val sharedPrefs = context.getSharedPreferences("login_prefs", Context.MODE_PRIVATE)
+    val firebaseAuth = FirebaseAuth.getInstance()
+    val coroutineScope = rememberCoroutineScope()
+    var isDarkMode by remember { mutableStateOf(ThemeUtils.isDarkMode(context)) }
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(24.dp),
-        verticalArrangement = Arrangement.Center
-    ) {
-        Text("Login", style = MaterialTheme.typography.titleLarge)
-        Spacer(Modifier.height(16.dp))
+    val gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+        .requestIdToken(context.getString(R.string.default_web_client_id))
+        .requestEmail()
+        .build()
+    val googleSignInClient = GoogleSignIn.getClient(context, gso)
 
-        OutlinedTextField(
-            value = email,
-            onValueChange = { email = it },
-            label = { Text("Email") },
-            modifier = Modifier.fillMaxWidth()
-        )
-
-        Spacer(Modifier.height(8.dp))
-
-        OutlinedTextField(
-            value = password,
-            onValueChange = { password = it },
-            label = { Text("Password") },
-            visualTransformation = PasswordVisualTransformation(),
-            modifier = Modifier.fillMaxWidth()
-        )
-
-        Spacer(Modifier.height(16.dp))
-
-        Button(
-            onClick = {
-                if (email.isNotBlank() && password.length >= 8) {
-                    FirebaseAuth.getInstance()
-                        .signInWithEmailAndPassword(email, password)
-                        .addOnCompleteListener { task ->
-                            if (task.isSuccessful) {
-                                navController.navigate("home")
-                            } else {
-                                Toast.makeText(
-                                    context,
-                                    "Login failed: ${task.exception?.message}",
-                                    Toast.LENGTH_SHORT
-                                ).show()
+    val launcher = rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+        if (result.resultCode == Activity.RESULT_OK) {
+            val task = GoogleSignIn.getSignedInAccountFromIntent(result.data)
+            try {
+                val account: GoogleSignInAccount = task.result
+                val token = account.idToken
+                if (token != null) {
+                    val credential = GoogleAuthProvider.getCredential(token, null)
+                    firebaseAuth.signInWithCredential(credential).addOnCompleteListener { authResult ->
+                        if (authResult.isSuccessful) {
+                            navController.navigate("home") {
+                                popUpTo("login") { inclusive = true }
                             }
+                        } else {
+                            Toast.makeText(context, context.getString(R.string.google_signin_failed), Toast.LENGTH_SHORT).show()
                         }
+                    }
                 } else {
-                    Toast.makeText(context, "Please fill all fields properly", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(context, "Google Sign-In failed: Token is null", Toast.LENGTH_SHORT).show()
                 }
-            },
-            modifier = Modifier.fillMaxWidth()
+            } catch (e: Exception) {
+                Toast.makeText(context, context.getString(R.string.google_signin_error, e.localizedMessage ?: ""), Toast.LENGTH_SHORT).show()
+            }
+        }
+    }
+
+    LaunchedEffect(Unit) {
+        email = sharedPrefs.getString("email", "") ?: ""
+        if (email.isNotBlank()) {
+            snackbarHostState.showSnackbar(context.getString(R.string.welcome_back))
+        }
+    }
+
+    Box(modifier = Modifier.fillMaxSize()) {
+        Row(
+            modifier = Modifier
+                .align(Alignment.TopEnd)
+                .padding(16.dp),
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
+            verticalAlignment = Alignment.CenterVertically
         ) {
-            Text("Login")
+            IconButton(onClick = { navController.navigate("language_settings") }) {
+                Icon(Icons.Default.Language, contentDescription = "Change Language", tint = MaterialTheme.colorScheme.primary)
+            }
+            IconButton(onClick = {
+                isDarkMode = !isDarkMode
+                ThemeUtils.setDarkMode(context, isDarkMode)
+                (context as? Activity)?.recreate()
+            }) {
+                Icon(
+                    imageVector = if (isDarkMode) Icons.Default.LightMode else Icons.Default.DarkMode,
+                    contentDescription = "Toggle Theme",
+                    tint = MaterialTheme.colorScheme.primary
+                )
+            }
         }
 
-        TextButton(onClick = { navController.navigate("signup") }) {
-            Text("Don't have an account? Sign up")
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(horizontal = 24.dp),
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            AnimatedVisibility(visible = true, enter = fadeIn(), exit = fadeOut()) {
+                Card(
+                    modifier = Modifier
+                        .wrapContentHeight()
+                        .widthIn(min = 300.dp, max = 400.dp)
+                        .shadow(8.dp, RoundedCornerShape(16.dp)),
+                    shape = RoundedCornerShape(16.dp),
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
+                ) {
+                    Column(
+                        modifier = Modifier
+                            .padding(16.dp)
+                            .fillMaxWidth(),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Image(
+                            painter = painterResource(id = R.drawable.ic_launcher_foreground),
+                            contentDescription = "Logo",
+                            modifier = Modifier.size(70.dp)
+                        )
+
+                        Spacer(modifier = Modifier.height(12.dp))
+
+                        Text(
+                            text = stringResource(R.string.app_name),
+                            fontSize = 40.sp,
+                            style = TextStyle(fontFamily = kidsZoneFont, fontWeight = FontWeight.Bold),
+                            color = Color.Red
+                        )
+
+                        Text(stringResource(R.string.tagline), color = Color.Gray, fontSize = 12.sp)
+
+                        Spacer(modifier = Modifier.height(16.dp))
+
+                        OutlinedTextField(
+                            value = email,
+                            onValueChange = { email = it },
+                            label = { Text(stringResource(R.string.email_label)) },
+                            singleLine = true,
+                            modifier = Modifier.fillMaxWidth(),
+                            leadingIcon = { Icon(Icons.Filled.Email, contentDescription = null) },
+                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email)
+                        )
+
+                        Spacer(modifier = Modifier.height(10.dp))
+
+                        OutlinedTextField(
+                            value = password,
+                            onValueChange = { password = it },
+                            label = { Text(stringResource(R.string.password_label)) },
+                            singleLine = true,
+                            modifier = Modifier.fillMaxWidth(),
+                            leadingIcon = { Icon(Icons.Filled.Lock, contentDescription = null) },
+                            trailingIcon = {
+                                val icon = if (passwordVisible) Icons.Filled.Visibility else Icons.Filled.VisibilityOff
+                                IconButton(onClick = { passwordVisible = !passwordVisible }) {
+                                    Icon(icon, contentDescription = null)
+                                }
+                            },
+                            visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation()
+                        )
+
+                        Spacer(modifier = Modifier.height(6.dp))
+
+                        Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                            Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.weight(1f)) {
+                                Checkbox(checked = rememberMe, onCheckedChange = { rememberMe = it })
+                                Spacer(modifier = Modifier.width(4.dp))
+                                Text(stringResource(R.string.remember_me), fontSize = 12.sp)
+                            }
+                            TextButton(onClick = { navController.navigate("forgot") }) {
+                                Text(stringResource(R.string.forgot_password), fontSize = 12.sp)
+                            }
+                        }
+
+                        Spacer(modifier = Modifier.height(6.dp))
+
+                        Button(
+                            onClick = {
+                                if (email.isBlank() || !email.contains("@") || password.length < 8) {
+                                    Toast.makeText(context, context.getString(R.string.invalid_credentials), Toast.LENGTH_SHORT).show()
+                                    return@Button
+                                }
+                                isLoading = true
+                                coroutineScope.launch {
+                                    delay(200)
+                                    firebaseAuth.signInWithEmailAndPassword(email, password).addOnCompleteListener { task ->
+                                        isLoading = false
+                                        if (task.isSuccessful) {
+                                            if (rememberMe) {
+                                                sharedPrefs.edit().putString("email", email).apply()
+                                            }
+                                            navController.navigate("home") {
+                                                popUpTo("login") { inclusive = true }
+                                            }
+                                        } else {
+                                            Toast.makeText(context, context.getString(R.string.login_failed, task.exception?.message ?: ""), Toast.LENGTH_SHORT).show()
+                                        }
+                                    }
+                                }
+                            },
+                            shape = RoundedCornerShape(50),
+                            colors = ButtonDefaults.buttonColors(containerColor = Color.Red),
+                            modifier = Modifier.fillMaxWidth().height(45.dp)
+                        ) {
+                            if (isLoading) {
+                                CircularProgressIndicator(color = Color.White, strokeWidth = 2.dp, modifier = Modifier.size(18.dp))
+                            } else {
+                                Text(stringResource(R.string.login), color = Color.White, fontSize = 16.sp)
+                            }
+                        }
+
+                        Spacer(modifier = Modifier.height(10.dp))
+
+                        Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
+                            Divider(modifier = Modifier.weight(1f))
+                            Text("  ${stringResource(R.string.or)}  ", fontSize = 12.sp, color = Color.Gray)
+                            Divider(modifier = Modifier.weight(1f))
+                        }
+
+                        Spacer(modifier = Modifier.height(10.dp))
+
+                        Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
+                            OutlinedButton(
+                                onClick = { launcher.launch(googleSignInClient.signInIntent) },
+                                shape = RoundedCornerShape(50),
+                                colors = ButtonDefaults.outlinedButtonColors(contentColor = Color.Black),
+                                modifier = Modifier.weight(1f).height(45.dp)
+                            ) {
+                                Icon(painter = painterResource(id = R.drawable.ic_google), contentDescription = null, modifier = Modifier.size(18.dp))
+                                Spacer(modifier = Modifier.width(6.dp))
+                                Text(stringResource(R.string.google), fontSize = 14.sp)
+                            }
+
+                            OutlinedButton(
+                                onClick = { navController.navigate("phone") },
+                                shape = RoundedCornerShape(50),
+                                modifier = Modifier.weight(1f).height(45.dp)
+                            ) {
+                                Text(stringResource(R.string.login_via_otp), fontSize = 14.sp)
+                            }
+                        }
+
+                        Spacer(modifier = Modifier.height(12.dp))
+
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.Center,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            TextButton(onClick = {
+                                context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("https://yourdomain.com/privacy")))
+                            }) {
+                                Text(stringResource(R.string.privacy_policy), fontSize = 10.sp)
+                            }
+                            Text("|", fontSize = 10.sp)
+                            TextButton(onClick = {
+                                context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("https://yourdomain.com/terms")))
+                            }) {
+                                Text(stringResource(R.string.terms_conditions), fontSize = 10.sp)
+                            }
+                        }
+
+                        Spacer(modifier = Modifier.height(8.dp))
+
+                        TextButton(onClick = { navController.navigate("signup") }) {
+                            Text(buildAnnotatedString {
+                                withStyle(style = SpanStyle(color = MaterialTheme.colorScheme.onSurface)) {
+                                    append("${stringResource(R.string.signup_prompt)} ")
+                                }
+                                withStyle(style = SpanStyle(color = MaterialTheme.colorScheme.primary)) {
+                                    append(stringResource(R.string.signup))
+                                }
+                            })
+                        }
+                    }
+                }
+            }
+
+            SnackbarHost(hostState = snackbarHostState)
         }
     }
 }
