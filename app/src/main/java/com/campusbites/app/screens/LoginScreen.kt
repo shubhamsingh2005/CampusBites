@@ -23,26 +23,16 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.fontResource
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.SpanStyle
-import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.buildAnnotatedString
-import androidx.compose.ui.text.font.Font
-import androidx.compose.ui.text.font.FontFamily
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
-import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import com.campusbites.app.R
 import com.campusbites.app.utils.ThemeUtils
 import com.google.android.gms.auth.api.signin.GoogleSignIn
-import com.google.android.gms.auth.api.signin.GoogleSignInAccount
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.GoogleAuthProvider
@@ -59,7 +49,6 @@ fun LoginScreen(navController: NavHostController) {
 
     val snackbarHostState = remember { SnackbarHostState() }
     val context = LocalContext.current
-    val kidsZoneFont = FontFamily(Font(R.font.kidszone))
     val sharedPrefs = context.getSharedPreferences("login_prefs", Context.MODE_PRIVATE)
     val firebaseAuth = FirebaseAuth.getInstance()
     val coroutineScope = rememberCoroutineScope()
@@ -75,24 +64,22 @@ fun LoginScreen(navController: NavHostController) {
         if (result.resultCode == Activity.RESULT_OK) {
             val task = GoogleSignIn.getSignedInAccountFromIntent(result.data)
             try {
-                val account: GoogleSignInAccount = task.result
+                val account = task.result
                 val token = account.idToken
                 if (token != null) {
                     val credential = GoogleAuthProvider.getCredential(token, null)
-                    firebaseAuth.signInWithCredential(credential).addOnCompleteListener { authResult ->
-                        if (authResult.isSuccessful) {
+                    firebaseAuth.signInWithCredential(credential).addOnCompleteListener {
+                        if (it.isSuccessful) {
                             navController.navigate("home") {
                                 popUpTo("login") { inclusive = true }
                             }
                         } else {
-                            Toast.makeText(context, context.getString(R.string.google_signin_failed), Toast.LENGTH_SHORT).show()
+                            Toast.makeText(context, "Google Sign-In Failed", Toast.LENGTH_SHORT).show()
                         }
                     }
-                } else {
-                    Toast.makeText(context, "Google Sign-In failed: Token is null", Toast.LENGTH_SHORT).show()
                 }
             } catch (e: Exception) {
-                Toast.makeText(context, context.getString(R.string.google_signin_error, e.localizedMessage ?: ""), Toast.LENGTH_SHORT).show()
+                Toast.makeText(context, "Error: ${e.localizedMessage}", Toast.LENGTH_SHORT).show()
             }
         }
     }
@@ -100,7 +87,7 @@ fun LoginScreen(navController: NavHostController) {
     LaunchedEffect(Unit) {
         email = sharedPrefs.getString("email", "") ?: ""
         if (email.isNotBlank()) {
-            snackbarHostState.showSnackbar(context.getString(R.string.welcome_back))
+            snackbarHostState.showSnackbar("Welcome back!")
         }
     }
 
@@ -151,28 +138,17 @@ fun LoginScreen(navController: NavHostController) {
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
                         Image(
-                            painter = painterResource(id = R.drawable.ic_launcher_foreground),
-                            contentDescription = "Logo",
-                            modifier = Modifier.size(70.dp)
+                            painter = painterResource(id = R.drawable.ic_applogo),
+                            contentDescription = "App Logo",
+                            modifier = Modifier
+                                .size(150.dp)
+                                .padding(top = 16.dp, bottom = 8.dp)
                         )
-
-                        Spacer(modifier = Modifier.height(12.dp))
-
-                        Text(
-                            text = stringResource(R.string.app_name),
-                            fontSize = 40.sp,
-                            style = TextStyle(fontFamily = kidsZoneFont, fontWeight = FontWeight.Bold),
-                            color = Color.Red
-                        )
-
-                        Text(stringResource(R.string.tagline), color = Color.Gray, fontSize = 12.sp)
-
-                        Spacer(modifier = Modifier.height(16.dp))
 
                         OutlinedTextField(
                             value = email,
                             onValueChange = { email = it },
-                            label = { Text(stringResource(R.string.email_label)) },
+                            label = { Text("Email") },
                             singleLine = true,
                             modifier = Modifier.fillMaxWidth(),
                             leadingIcon = { Icon(Icons.Filled.Email, contentDescription = null) },
@@ -184,7 +160,7 @@ fun LoginScreen(navController: NavHostController) {
                         OutlinedTextField(
                             value = password,
                             onValueChange = { password = it },
-                            label = { Text(stringResource(R.string.password_label)) },
+                            label = { Text("Password") },
                             singleLine = true,
                             modifier = Modifier.fillMaxWidth(),
                             leadingIcon = { Icon(Icons.Filled.Lock, contentDescription = null) },
@@ -203,19 +179,19 @@ fun LoginScreen(navController: NavHostController) {
                             Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.weight(1f)) {
                                 Checkbox(checked = rememberMe, onCheckedChange = { rememberMe = it })
                                 Spacer(modifier = Modifier.width(4.dp))
-                                Text(stringResource(R.string.remember_me), fontSize = 12.sp)
+                                Text("Remember Me", fontSize = 12.sp)
                             }
                             TextButton(onClick = { navController.navigate("forgot") }) {
-                                Text(stringResource(R.string.forgot_password), fontSize = 12.sp)
+                                Text("Forgot Password?", fontSize = 12.sp)
                             }
                         }
 
-                        Spacer(modifier = Modifier.height(6.dp))
+                        Spacer(modifier = Modifier.height(8.dp))
 
                         Button(
                             onClick = {
                                 if (email.isBlank() || !email.contains("@") || password.length < 8) {
-                                    Toast.makeText(context, context.getString(R.string.invalid_credentials), Toast.LENGTH_SHORT).show()
+                                    Toast.makeText(context, "Invalid credentials", Toast.LENGTH_SHORT).show()
                                     return@Button
                                 }
                                 isLoading = true
@@ -231,7 +207,7 @@ fun LoginScreen(navController: NavHostController) {
                                                 popUpTo("login") { inclusive = true }
                                             }
                                         } else {
-                                            Toast.makeText(context, context.getString(R.string.login_failed, task.exception?.message ?: ""), Toast.LENGTH_SHORT).show()
+                                            Toast.makeText(context, "Login failed: ${task.exception?.message}", Toast.LENGTH_SHORT).show()
                                         }
                                     }
                                 }
@@ -243,19 +219,11 @@ fun LoginScreen(navController: NavHostController) {
                             if (isLoading) {
                                 CircularProgressIndicator(color = Color.White, strokeWidth = 2.dp, modifier = Modifier.size(18.dp))
                             } else {
-                                Text(stringResource(R.string.login), color = Color.White, fontSize = 16.sp)
+                                Text("Login", color = Color.White, fontSize = 16.sp)
                             }
                         }
 
-                        Spacer(modifier = Modifier.height(10.dp))
-
-                        Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
-                            Divider(modifier = Modifier.weight(1f))
-                            Text("  ${stringResource(R.string.or)}  ", fontSize = 12.sp, color = Color.Gray)
-                            Divider(modifier = Modifier.weight(1f))
-                        }
-
-                        Spacer(modifier = Modifier.height(10.dp))
+                        Spacer(modifier = Modifier.height(12.dp))
 
                         Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
                             OutlinedButton(
@@ -266,7 +234,7 @@ fun LoginScreen(navController: NavHostController) {
                             ) {
                                 Icon(painter = painterResource(id = R.drawable.ic_google), contentDescription = null, modifier = Modifier.size(18.dp))
                                 Spacer(modifier = Modifier.width(6.dp))
-                                Text(stringResource(R.string.google), fontSize = 14.sp)
+                                Text("Google", fontSize = 14.sp)
                             }
 
                             OutlinedButton(
@@ -274,41 +242,14 @@ fun LoginScreen(navController: NavHostController) {
                                 shape = RoundedCornerShape(50),
                                 modifier = Modifier.weight(1f).height(45.dp)
                             ) {
-                                Text(stringResource(R.string.login_via_otp), fontSize = 14.sp)
-                            }
-                        }
-
-                        Spacer(modifier = Modifier.height(12.dp))
-
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.Center,
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            TextButton(onClick = {
-                                context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("https://yourdomain.com/privacy")))
-                            }) {
-                                Text(stringResource(R.string.privacy_policy), fontSize = 10.sp)
-                            }
-                            Text("|", fontSize = 10.sp)
-                            TextButton(onClick = {
-                                context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("https://yourdomain.com/terms")))
-                            }) {
-                                Text(stringResource(R.string.terms_conditions), fontSize = 10.sp)
+                                Text("Login via OTP", fontSize = 14.sp)
                             }
                         }
 
                         Spacer(modifier = Modifier.height(8.dp))
 
                         TextButton(onClick = { navController.navigate("signup") }) {
-                            Text(buildAnnotatedString {
-                                withStyle(style = SpanStyle(color = MaterialTheme.colorScheme.onSurface)) {
-                                    append("${stringResource(R.string.signup_prompt)} ")
-                                }
-                                withStyle(style = SpanStyle(color = MaterialTheme.colorScheme.primary)) {
-                                    append(stringResource(R.string.signup))
-                                }
-                            })
+                            Text("Don't have an account? Sign up", fontSize = 12.sp)
                         }
                     }
                 }

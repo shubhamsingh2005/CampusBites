@@ -82,7 +82,7 @@ fun HomeScreen(navController: NavHostController) {
                 },
                 actions = {
                     IconButton(onClick = {
-                        navController.navigate("profile") // ✅ Navigate to profile
+                        navController.navigate("profile")
                     }) {
                         Icon(Icons.Default.AccountCircle, contentDescription = "Profile")
                     }
@@ -113,13 +113,13 @@ fun HomeScreen(navController: NavHostController) {
                     )
 
                     listOf(
-                        Icons.Default.Home to "Home",
-                        Icons.Default.Menu to "Categories",
-                        Icons.Default.Favorite to "Orders",
-                        Icons.Default.LocalMall to "Mirchibox"
-                    ).forEach { (icon, label) ->
+                        Triple(Icons.Default.Home, "Home", "home"),
+                        Triple(Icons.Default.Menu, "Categories", "categories"),
+                        Triple(Icons.Default.Favorite, "Orders", "orders"),      // 🛠 implement if needed
+                        Triple(Icons.Default.LocalMall, "Mirchibox", "mirchibox") // 🛠 implement if needed
+                    ).forEach { (icon, label, route) ->
                         IconButton(
-                            onClick = { /* TODO: Handle click */ },
+                            onClick = { navController.navigate(route) },
                             modifier = buttonModifier,
                             colors = buttonColors
                         ) {
@@ -191,3 +191,4 @@ fun rememberMapViewWithLifecycle(): MapView {
 
     return mapView
 }
+

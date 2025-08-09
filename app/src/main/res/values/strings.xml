@@ -1,6 +1,6 @@
 <!-- res/values/strings.xml -->
 <resources>
-    <string name="app_name">Campus Bites</string>
+    <string name="app_name">Zaika Zone</string>
     <string name="tagline">Eat Sleep Repeat</string>
     <string name="email_label">Email</string>
     <string name="password_label">Password</string>

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">कैंपस बाइट्स</string>
+    <string name="app_name">ज़ाएगा ज़ोन</string>
     <string name="tagline">खाओ, सोओ, दोहराओ</string>
     <string name="email_label">ईमेल</string>
     <string name="password_label">पासवर्ड</string>
