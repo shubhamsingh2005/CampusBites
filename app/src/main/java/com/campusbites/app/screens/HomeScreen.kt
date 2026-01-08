@@ -19,22 +19,28 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import com.campusbites.app.R
+import com.campusbites.app.viewmodel.HomeViewModel
+import com.mapbox.mapboxsdk.camera.CameraUpdateFactory
+import com.mapbox.mapboxsdk.geometry.LatLng
+import com.mapbox.mapboxsdk.maps.MapView
+import com.mapbox.mapboxsdk.maps.MapboxMap
+import com.mapbox.mapboxsdk.maps.Style
 import org.maplibre.android.MapLibre
 import org.maplibre.android.camera.CameraPosition
-import org.maplibre.android.geometry.LatLng
-import org.maplibre.android.maps.MapView
-import org.maplibre.android.maps.Style
+import org.maplibre.android.geometry.LatLng as MapLibreLatLng
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun HomeScreen(navController: NavHostController) {
+fun HomeScreen(navController: NavHostController, homeViewModel: HomeViewModel = viewModel()) {
     val context = LocalContext.current
     var searchQuery by remember { mutableStateOf("") }
+    val shops by homeViewModel.shops.collectAsState()
 
-    // Initialize MapLibre
     LaunchedEffect(Unit) {
+        homeViewModel.fetchShops(context)
         try {
             MapLibre.getInstance(context)
         } catch (_: Exception) {}
@@ -86,7 +92,7 @@ fun HomeScreen(navController: NavHostController) {
                     }) {
                         Icon(Icons.Default.AccountCircle, contentDescription = "Profile")
                     }
-                    IconButton(onClick = {}) {
+                    IconButton(onClick = { navController.navigate("cart") }) {
                         Icon(Icons.Default.ShoppingCart, contentDescription = "Cart")
                     }
                 }
@@ -147,13 +153,30 @@ fun HomeScreen(navController: NavHostController) {
                             Style.Builder().fromUri(
                                 "https://api.maptiler.com/maps/019796ae-d8be-7738-b932-604a13f5533c/style.json?key=tIFbJDNYEOgeiXz9UmsD"
                             )
-                        ) {
-                            val punjabLatLng = LatLng(31.1471, 75.3412)
+                        ) { style ->
+                            val punjabLatLng = MapLibreLatLng(31.1471, 75.3412)
                             val cameraPosition = CameraPosition.Builder()
                                 .target(punjabLatLng)
                                 .zoom(9.5)
                                 .build()
                             map.cameraPosition = cameraPosition
+
+                            shops.forEach { shop ->
+                                val shopLatLng = LatLng(shop.id.toDouble(), shop.id.toDouble()) // Replace with actual coordinates
+                                map.addMarker(
+                                    com.mapbox.mapboxsdk.annotations.MarkerOptions()
+                                        .position(shopLatLng)
+                                        .title(shop.name)
+                                )
+                            }
+
+                            map.setOnMarkerClickListener { marker ->
+                                val shop = shops.find { it.name == marker.title }
+                                shop?.let {
+                                    navController.navigate("shop/${it.id}")
+                                }
+                                true
+                            }
                         }
                     }
                 }
@@ -191,4 +214,3 @@ fun rememberMapViewWithLifecycle(): MapView {
 
     return mapView
 }
-

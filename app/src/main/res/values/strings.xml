@@ -1,41 +1,68 @@
 <!-- res/values/strings.xml -->
 <resources>
-    <string name="app_name">Zaika Zone</string>
+    <string name="app_name">Campusbites</string>
     <string name="tagline">Eat Sleep Repeat</string>
+
+    <!-- Common -->
     <string name="email_label">Email</string>
     <string name="password_label">Password</string>
+    <string name="phone_number_label">Phone Number</string>
+    <string name="otp_label">Enter OTP</string>
+    <string name="full_name_label">Full Name</string>
+    <string name="unknown_error">An unknown error occurred.</string>
+    <string name="error_prefix">Error: %s</string>
+    <string name="cd_go_back">Go back</string>
+
+    <!-- Login Screen -->
+    <string name="login_button">Login</string>
     <string name="remember_me">Remember Me</string>
     <string name="forgot_password">Forgot Password?</string>
-    <string name="login">Login</string>
-    <string name="login_failed">Login failed: %1$s</string>
-    <string name="invalid_credentials">Invalid email or password</string>
-    <string name="or">or</string>
-    <string name="google">Google</string>
     <string name="login_via_otp">Login via OTP</string>
-    <string name="signup_prompt">{str}</string>
-    <string name="signup">Sign up</string>
+    <string name="google_button">Google</string>
+    <string name="no_account_signup">Don\'t have an account? Sign up</string>
     <string name="welcome_back">Welcome back!</string>
-    <string name="google_signin_failed">Google Sign-In Failed</string>
-    <string name="google_signin_error">Google Sign-In Error: %1$s</string>
+    <string name="invalid_credentials">Invalid email or password format.</string>
+    <string name="google_signin_failed">Google Sign-In failed.</string>
+    <string name="login_failed_prefix">Login failed: %s</string>
+    <string name="cd_app_logo">App Logo</string>
+    <string name="cd_toggle_password_visibility">Toggle password visibility</string>
+    <string name="cd_change_language">Change language</string>
+    <string name="cd_toggle_theme">Toggle light/dark theme</string>
+
+    <!-- Phone Screen -->
+    <string name="phone_login_title">Phone Login</string>
+    <string name="send_otp_button">Send OTP</string>
+    <string name="verify_otp_button">Verify OTP</string>
+    <string name="verification_failed">Verification failed.</string>
+    <string name="verification_failed_message">Verification failed: %s</string>
+    <string name="otp_sent_success">OTP sent successfully.</string>
+
+    <!-- Profile Screen -->
+    <string name="profile_title">Edit Profile</string>
+    <string name="save_changes_button">Save Changes</string>
+    <string name="cd_profile_picture">Profile picture</string>
+
+    <!-- Settings Screen -->
+    <string name="settings_title">Settings</string>
+    <string name="setting_edit_profile">Edit Profile</string>
+    <string name="setting_change_password">Change Password</string>
+    <string name="setting_notifications">Notifications</string>
+    <string name="setting_privacy">Privacy Settings</string>
+    <string name="setting_logout">Logout</string>
+
+    <!-- Existing Strings from Zaika Zone -->
+    <string name="or">or</string>
+    <string name="signup">Sign up</string>
     <string name="create_free_account">Create Free Account</string>
-    <string name="full_name">Full Name</string>
     <string name="use_email">Use Email</string>
     <string name="use_phone">Use Phone</string>
     <string name="confirm_password">Confirm Password</string>
     <string name="fill_required_fields">Please fill all required fields</string>
     <string name="passwords_do_not_match">Passwords do not match</string>
     <string name="password_too_short">Password must be at least 8 characters</string>
-    <string name="otp_sent">OTP Sent</string>
-    <string name="otp_failed">OTP Failed: %1$s</string>
     <string name="successfully_registered">✅ Successfully registered!</string>
     <string name="signup_failed">Signup failed: %1$s</string>
     <string name="already_have_account">Already have an account? Login</string>
-    <string name="phone_number_hint">Phone Number</string>
-    <string name="enter_otp">Enter OTP</string>
-    <string name="phone_login">Phone Login</string>
-    <string name="send_otp">Send OTP</string>
-    <string name="verify_otp">Verify OTP</string>
-    <string name="verification_failed">Verification failed: %1$s</string>
     <string name="welcome_message">🎉 Welcome to Campus Bites!</string>
     <string name="logged_in_as">You’ve successfully logged in as:</string>
     <string name="user">User</string>

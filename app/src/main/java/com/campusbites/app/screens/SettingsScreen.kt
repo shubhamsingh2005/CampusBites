@@ -1,88 +1,77 @@
 package com.campusbites.app.screens
 
-import android.app.Activity
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Language
-import androidx.compose.material.icons.filled.LightMode
-import androidx.compose.material.icons.filled.DarkMode
+import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import androidx.navigation.NavHostController
-import com.campusbites.app.utils.ThemeUtils
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.ui.graphics.Color
+import androidx.navigation.NavController
+import com.campusbites.app.R
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SettingsScreen(navController: NavHostController) {
-    val context = LocalContext.current
-    var isDarkMode by remember { mutableStateOf(ThemeUtils.isDarkMode(context)) }
-
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(24.dp),
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        Text("Settings", style = MaterialTheme.typography.headlineSmall)
-
-        Spacer(modifier = Modifier.height(24.dp))
-
-        SettingOption(
-            title = "Change Language",
-            icon = Icons.Default.Language,
-            onClick = { navController.navigate("language_settings") }
-        )
-
-        SettingOption(
-            title = "Toggle Dark Mode",
-            icon = if (isDarkMode) Icons.Default.LightMode else Icons.Default.DarkMode,
-            onClick = {
-                isDarkMode = !isDarkMode
-                ThemeUtils.setDarkMode(context, isDarkMode)
-                (context as? Activity)?.recreate()
-            }
-        )
+fun SettingsScreen(navController: NavController) {
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = { Text(stringResource(R.string.settings_title)) },
+                navigationIcon = {
+                    IconButton(onClick = { navController.popBackStack() }) {
+                        Icon(
+                            Icons.Default.ArrowBack,
+                            contentDescription = stringResource(R.string.cd_go_back)
+                        )
+                    }
+                }
+            )
+        }
+    ) { paddingValues ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(paddingValues)
+        ) {
+            SettingsItem(
+                icon = Icons.Default.Edit,
+                title = stringResource(R.string.setting_edit_profile),
+                onClick = { navController.navigate("profile") }
+            )
+            SettingsItem(
+                icon = Icons.Default.Lock,
+                title = stringResource(R.string.setting_change_password),
+                onClick = { /* navController.navigate("change_password") */ }
+            )
+            SettingsItem(
+                icon = Icons.Default.Notifications,
+                title = stringResource(R.string.setting_notifications),
+                onClick = { /* navController.navigate("notifications") */ }
+            )
+            SettingsItem(
+                icon = Icons.Default.PrivacyTip,
+                title = stringResource(R.string.setting_privacy),
+                onClick = { /* navController.navigate("privacy") */ }
+            )
+        }
     }
 }
 
 @Composable
-fun SettingOption(
-    title: String,
-    icon: androidx.compose.ui.graphics.vector.ImageVector,
-    onClick: () -> Unit
-) {
-    Surface(
-        onClick = onClick,
-        shape = RoundedCornerShape(16.dp),
-        color = MaterialTheme.colorScheme.surfaceVariant,
+fun SettingsItem(icon: ImageVector, title: String, onClick: () -> Unit) {
+    Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(vertical = 6.dp),
-        tonalElevation = 2.dp
+            .clickable(onClick = onClick)
+            .padding(16.dp),
+        verticalAlignment = Alignment.CenterVertically
     ) {
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier
-                .clickable { onClick() }
-                .padding(14.dp)
-        ) {
-            Icon(
-                imageVector = icon,
-                contentDescription = title,
-                tint = MaterialTheme.colorScheme.primary
-            )
-            Spacer(modifier = Modifier.width(16.dp))
-            Text(
-                text = title,
-                style = MaterialTheme.typography.bodyLarge,
-                color = MaterialTheme.colorScheme.onSurface
-            )
-        }
+        Icon(icon, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
+        Spacer(modifier = Modifier.width(16.dp))
+        Text(text = title, style = MaterialTheme.typography.bodyLarge)
     }
 }

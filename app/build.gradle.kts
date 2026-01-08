@@ -3,7 +3,6 @@ plugins {
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
 }
-apply(plugin = "com.google.gms.google-services")
 
 android {
     namespace = "com.campusbites.app"
@@ -44,13 +43,9 @@ android {
 }
 
 dependencies {
-    // ✅ Firebase
-    implementation(platform("com.google.firebase:firebase-bom:32.1.1"))
-    implementation("com.google.firebase:firebase-auth")
-    implementation("com.google.firebase:firebase-firestore")
-    implementation("com.google.firebase:firebase-storage")
-    implementation("com.google.firebase:firebase-messaging")
-    implementation("com.google.firebase:firebase-auth-ktx")
+    // ✅ Networking with Retrofit and Gson
+    implementation("com.squareup.retrofit2:retrofit:2.9.0")
+    implementation("com.squareup.retrofit2:converter-gson:2.9.0")
 
     // ✅ MapLibre via JitPack
     implementation("org.maplibre.gl:android-sdk:11.10.0")
@@ -68,14 +63,9 @@ dependencies {
     implementation("androidx.compose.material:material-icons-extended")
 
     // ✅ Google Auth
-    implementation("com.google.android.gms:play-services-auth:20.7.0")
-    implementation(platform("com.google.firebase:firebase-bom:32.1.1"))
-    implementation("com.google.firebase:firebase-auth-ktx")
     implementation("io.coil-kt:coil-compose:2.4.0")
-    // Firebase Firestore
-    implementation("com.google.firebase:firebase-firestore-ktx:24.9.1")
 
-// Kotlin coroutines task extensions
+    // Kotlin coroutines task extensions
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-play-services:1.7.1")
     // ✅ Testing
     testImplementation(libs.junit)

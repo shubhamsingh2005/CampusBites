@@ -24,12 +24,6 @@ fun AppNavHost(navController: NavHostController) {
         composable("signup") {
             SignupScreen(navController)
         }
-        composable("phone") {
-            PhoneAuthScreen(navController)
-        }
-        composable("forgot") {
-            ForgotPasswordScreen(navController)
-        }
 
         // ⚙️ Settings and Profile
         composable("language_settings") {

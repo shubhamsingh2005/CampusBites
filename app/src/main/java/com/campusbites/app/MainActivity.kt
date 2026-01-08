@@ -10,7 +10,6 @@ import com.campusbites.app.navigation.AppNavHost
 import com.campusbites.app.ui.theme.CampusbitesTheme
 import com.campusbites.app.utils.LocaleUtils
 import com.campusbites.app.utils.ThemeUtils
-import com.google.firebase.FirebaseApp
 
 class MainActivity : ComponentActivity() {
 
@@ -22,13 +21,11 @@ class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        FirebaseApp.initializeApp(this)
 
         val langCode = LocaleUtils.getSavedLanguage(this)
-        val isDarkMode = ThemeUtils.isDarkMode(this) // ⬅️ fetch dark mode setting
+        val isDarkMode = ThemeUtils.isDarkMode(this)
 
         setContent {
-            // 🔁 UI recomposes on language key change
             key(langCode) {
                 CampusbitesTheme(darkTheme = isDarkMode) {
                     val navController = rememberNavController()
