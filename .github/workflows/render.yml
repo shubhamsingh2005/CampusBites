@@ -1,0 +1,19 @@
+name: Deploy to Render
+
+on:
+  push:
+    branches:
+      - main # Or whatever your main branch is
+
+jobs:
+  build_and_deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Trigger Render Deploy
+        uses: jsmrcaga/render-deploy@v1
+        with:
+          service_id: ${{ secrets.RENDER_SERVICE_ID }} # Add this to your GitHub repository secrets
+          api_key: ${{ secrets.RENDER_API_KEY }}       # Add this to your GitHub repository secrets
